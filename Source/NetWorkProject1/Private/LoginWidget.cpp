@@ -34,6 +34,8 @@ void ULoginWidget::NativeConstruct()
 	{
 		//세션찾기 델리게이트 함수를 연결한다
 		gi->onCreateSlot.AddDynamic(this,&ULoginWidget::OnSlotCreated);
+		gi->onNewSearchComplete.AddDynamic(this,&ULoginWidget::OnClearScrollBox);
+		gi->onFindButtonToggle.AddDynamic(this,&ULoginWidget::FindBtnToggle);
 	}
 	
 	//슬라이더 값이 변경될때마다 실행될 함수 연결
@@ -77,17 +79,15 @@ void ULoginWidget::OnClickedFindSessionsButton()
 	{
 		gi->FindSession();
 	}
+
+	//중복클릭 (stuck 에 걸릴수있음 ) 방지를 위해 버튼을 잠시 비활성화  
+	//btn_findSessions->SetIsEnabled(false);
 }
 
 void ULoginWidget::OnSlotCreated(FString roomName, FString hostName, int32 curPlayer, int32 maxPlayer, int32 pingSpeed,
 	int32 sessionIdx)
 {
-	//중복되거나 제거된 룸은 목록에서 없어야한다.
-	//기존슬롯위젯을 모두 지우고 시작한다
-	sb_roomList->ClearChildren();
-
 	//서버로부터 받은 정보로 슬롯 위젯을 만들어서 추가한다.
-	
 	if(slotWidget != nullptr)
 	{
 		if(USessionSlotWidget* slot_UI = CreateWidget<USessionSlotWidget>(GetWorld(), slotWidget))
@@ -96,5 +96,17 @@ void ULoginWidget::OnSlotCreated(FString roomName, FString hostName, int32 curPl
 			sb_roomList->AddChild(slot_UI);
 		}
 	}
+}
+
+void ULoginWidget::OnClearScrollBox()
+{
+	//중복되거나 제거된 룸은 목록에서 없어야한다.
+	//기존슬롯위젯을 모두 지우고 시작한다
+	sb_roomList->ClearChildren();
+}
+
+void ULoginWidget::FindBtnToggle(bool value)
+{
+	btn_findSessions->SetIsEnabled(value);
 }
 

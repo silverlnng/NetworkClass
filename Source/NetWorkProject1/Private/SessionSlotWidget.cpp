@@ -4,12 +4,13 @@
 #include "SessionSlotWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
-
+#include "NetworkGameInstance.h"
 
 void USessionSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	btn_join->OnClicked.AddDynamic(this,&USessionSlotWidget::OnClickedJoinButton);
+	gi = GetGameInstance<UNetworkGameInstance>();
 }
 
 void USessionSlotWidget::SetSessionInfo(const FString roomName, const FString hostName, const int32 curPlayer,
@@ -26,6 +27,10 @@ void USessionSlotWidget::SetSessionInfo(const FString roomName, const FString ho
 
 void USessionSlotWidget::OnClickedJoinButton()
 {
+	if(gi!=nullptr)
+	{
+		gi->JoinSession(roomIndex);
+	}
 	
 }
 

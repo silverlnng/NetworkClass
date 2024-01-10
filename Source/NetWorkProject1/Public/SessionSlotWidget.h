@@ -39,6 +39,8 @@ public:
 	const int32 pingSpeed,const int32 idx);
 	
 private:
+	class UNetworkGameInstance* gi;
+	
 	UFUNCTION()
 	void OnClickedJoinButton();
 	
