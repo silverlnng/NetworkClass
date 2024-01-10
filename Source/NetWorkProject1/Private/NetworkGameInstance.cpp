@@ -71,9 +71,6 @@ void UNetworkGameInstance::OnCreatedSession(FName sessionName, bool bWasSuccessf
 	///Script/Engine.World'/Game/Maps/BattleMap.BattleMap' 에서 상대 경로 만 넣어주면 됨
 	GetWorld()->ServerTravel("/Game/Maps/BattleMap?Listen",true);
 	//지금현재 리슨서버이기때문에  ?listen 으로 설정 
-	
-	
-	
 }
 
 void UNetworkGameInstance::FindSession()
@@ -143,14 +140,24 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 	case EOnJoinSessionCompleteResult::Success:
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Session Success"));
+
+			//룸을 생성하고 플레이어가 GetWorld()->ServerTravel("/Game/Maps/BattleMap?Listen",true); 으로 들어가있음
+			
 			APlayerController* pc = GetWorld()->GetFirstPlayerController();
-			FString url;
+			
+			FString url;	//연결된 정보를 담기 위해 FString 변수 생성
+			
 			sessionInterface->GetResolvedConnectString(SesssionName,url,NAME_GamePort);
-			//NAME_GamePort :  공유기에는 포트가있으면 (길 여러개 될수있음 ) 접속할려면 포트주소(길의 주소)가 필요
+			// url 에 연결된 세션정보를 담음
+			// NAME_GamePort :  공유기에는 포트가있으면 (길 여러개 될수있음 ) 접속할려면 포트주소(길의 주소)가 필요
 			// GamePort는 실시간 게임을 위한 포트.  NAME_GamePort f12누르면 289으로 확인
 
 			UE_LOG(LogTemp, Warning, TEXT("url : %s"), *url);
+			
 			pc->ClientTravel(url,TRAVEL_Absolute);
+			//
+			// url으로 넣었는데 맵까지 동일한 맵으로...??
+			//랜 접속으로는 가능 
 		}
 		break;
 	case EOnJoinSessionCompleteResult::SessionIsFull:

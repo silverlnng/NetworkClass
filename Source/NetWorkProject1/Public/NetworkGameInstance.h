@@ -39,7 +39,7 @@ public:
 	
 private:
 	FName mySessionName = FName("first Session");
-	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;	//OnlineSessionSearch 는 
 	
 	void OnCreatedSession(FName sessionName, bool bWasSuccessful);	//서버에 세션생성을 요청하기 위한 함수
 	void OnFoundSession(bool bwasSuccessful);
