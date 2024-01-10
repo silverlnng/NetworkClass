@@ -46,7 +46,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_findSessions;
-	
+
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	TSubclassOf<class USessionSlotWidget> slotWidget;
 
 private:
 	class UNetworkGameInstance* gi;
@@ -65,4 +67,8 @@ private:
 	UFUNCTION()
 	void OnClickedFindSessionsButton();
 	
+	UFUNCTION()
+	void OnSlotCreated(FString roomName,FString hostName,int32 curPlayer,
+int32 maxPlayer,int32  pingSpeed,int32 sessionIdx);
+	//게임인스턴스에 있는 델리게이트랑 연결할 함수
 };

@@ -41,7 +41,7 @@ void UNetworkGameInstance::OnCreatedSession(FName sessionName, bool bWasSuccessf
 //(서버로 부터)세션 검색의 결과 이벤트 함수
 void UNetworkGameInstance::OnFoundSession(bool bwasSuccessful)
 {
-	TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;
+	TArray<FOnlineSessionSearchResult> results = SessionSearch->SearchResults;	//Search의 결과를 TArray에 넣음
 	
 	UE_LOG(LogTemp,Warning,TEXT("Find Result : %s") , bwasSuccessful? *FString("success!"):*FString("Failed.."));
 	
@@ -49,22 +49,29 @@ void UNetworkGameInstance::OnFoundSession(bool bwasSuccessful)
 	{
 		int32 sessionNum = results.Num();
 		UE_LOG(LogTemp,Warning,TEXT("Find Result : %d") ,results.Num());
-		for(const FOnlineSessionSearchResult& result : results)
+
+		
+		
+		//for(const FOnlineSessionSearchResult& result : results)
+		for(int32 i =0; i<results.Num();i++)	
 		{
 			FString foundRoomName;
-			result.Session.SessionSettings.Get(FName("Room Name") , foundRoomName);
+			results[i].Session.SessionSettings.Get(FName("Room Name") , foundRoomName);
 			FString foundHostName;
-			result.Session.SessionSettings.Get(FName("Host Name") , foundHostName);
+			results[i].Session.SessionSettings.Get(FName("Host Name") , foundHostName);
 
 			// 세션의최대값 - 남아있는 자리 = 현재 플레이어수
-			int32 maxPlayerCount = result.Session.SessionSettings.NumPublicConnections;
-			int32 currentplayerCount = maxPlayerCount - result.Session.NumOpenPublicConnections;
+			int32 maxPlayerCount = results[i].Session.SessionSettings.NumPublicConnections;
+			int32 currentplayerCount = maxPlayerCount - results[i].Session.NumOpenPublicConnections;
 
 			//데이터가 느린사람이 빠른속도에 맟추는건 불가능 .하지만 빠른속도의 사람이 느린사람 속도를 맞추는건 가능
 			
-			int pingSpeed = result.PingInMs;
+			int pingSpeed = results[i].PingInMs;
 			
-			UE_LOG(LogTemp,Warning,TEXT("RoomNAme: %s \n Host Name: %s \n player count: (%d/%d) \n ping: %d ms \n\n"),*foundRoomName,*foundHostName,currentplayerCount,maxPlayerCount,pingSpeed);
+			UE_LOG(LogTemp,Warning,TEXT("RoomNAme: %s \n Host Name: %s \n player count: (%d/%d) \n ping: %d ms \n\n"),*foundRoomName,*foundHostName,currentplayerCount,maxPlayerCount,pingSpeed);	//로그로 확인하기
+
+			//델리게이트 이벤트 실행하기
+			onCreateSlot.Broadcast(foundRoomName,foundHostName,currentplayerCount,maxPlayerCount,pingSpeed,i);
 		}
 	}
 }
