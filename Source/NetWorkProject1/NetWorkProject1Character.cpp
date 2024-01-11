@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "net/UnrealNetwork.h"	
+//네트워크관련 헤더
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -52,6 +54,11 @@ ANetWorkProject1Character::ANetWorkProject1Character()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	PrimaryActorTick.bCanEverTick = true;	//틱사용 설정 여부 ! 이게 없으면 tick을 만들어도 실행안함
+
+	bReplicates =true;
+	SetReplicateMovement(true);
 }
 
 void ANetWorkProject1Character::BeginPlay()
@@ -67,6 +74,29 @@ void ANetWorkProject1Character::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	localRole = GetLocalRole();
+	remoteRole = GetRemoteRole();
+}
+
+void ANetWorkProject1Character::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	PrintInfoLog();
+}
+
+void ANetWorkProject1Character::PrintInfoLog()
+{
+	FString localRoleString = *UEnum::GetValueAsString<ENetRole>(localRole);
+	FString remoteRoleString = *UEnum::GetValueAsString<ENetRole>(remoteRole);
+	FString ownerString = GetOwner() == nullptr ? *FString("No owner") : *GetOwner()->GetActorNameOrLabel();
+	
+	FString connectionString = GetNetConnection() ==nullptr? *FString("Invalid Connection") : *FString("Valid Connection");
+		
+	FString printString = FString::Printf(TEXT("LocalRole : %s \n remote Role : %s \n owner : %s \n connection: %s \n "),*localRoleString,*remoteRoleString,*ownerString,*connectionString);
+	
+	// 여기서 * 는 포인터가 아님 : 연산자 오버라이드 * 표시 => tchar형태로 반환된것
+	// UEnum::GetValueAsString<ENetRole> : 값에 해당하는 enum값을 문자열로 
+	DrawDebugString(GetWorld(),GetActorLocation(),printString,nullptr,FColor::White,0,true,1.0f);
 }
 
 //////////////////////////////////////////////////////////////////////////

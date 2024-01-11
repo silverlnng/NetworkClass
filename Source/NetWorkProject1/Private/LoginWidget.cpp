@@ -71,6 +71,10 @@ void ULoginWidget::OnClickedMoveToFind()
 {
 	// 0->2 ¹øÀ¸·Î
 	ws_widgetSwitcher->SetActiveWidgetIndex(2);
+	if(gi!=nullptr)
+	{
+		gi->FindSession();
+	}
 }
 
 void ULoginWidget::OnClickedFindSessionsButton()

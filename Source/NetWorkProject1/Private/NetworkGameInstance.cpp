@@ -130,6 +130,7 @@ void UNetworkGameInstance::OnFoundSession(bool bwasSuccessful)
 void UNetworkGameInstance::JoinSession(int32 roomNumber)
 {
 	sessionInterface->JoinSession(0,mySessionName,SessionSearch->SearchResults[roomNumber]);
+	//
 }
 
 void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCompleteResult::Type result)
@@ -140,8 +141,6 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 	case EOnJoinSessionCompleteResult::Success:
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Session Success"));
-
-			//룸을 생성하고 플레이어가 GetWorld()->ServerTravel("/Game/Maps/BattleMap?Listen",true); 으로 들어가있음
 			
 			APlayerController* pc = GetWorld()->GetFirstPlayerController();
 			
@@ -155,8 +154,8 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 			UE_LOG(LogTemp, Warning, TEXT("url : %s"), *url);
 			
 			pc->ClientTravel(url,TRAVEL_Absolute);
-			//
-			// url으로 넣었는데 맵까지 동일한 맵으로...??
+			// ClientTravel ( 맵 또는 ip 주소 대입 , travel 타입 )  
+			// 지금 url은 ip주소로 인데 맵까지 동일한 맵으로...??
 			//랜 접속으로는 가능 
 		}
 		break;
