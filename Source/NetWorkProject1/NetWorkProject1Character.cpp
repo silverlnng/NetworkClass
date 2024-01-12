@@ -25,18 +25,18 @@ ANetWorkProject1Character::ANetWorkProject1Character()
 		
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
@@ -45,7 +45,7 @@ ANetWorkProject1Character::ANetWorkProject1Character()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->bUsePawnControlRotation = true;
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -81,7 +81,8 @@ void ANetWorkProject1Character::BeginPlay()
 void ANetWorkProject1Character::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	PrintInfoLog();
+	//PrintInfoLog();
+	PrintTimeLog(DeltaSeconds);
 }
 
 void ANetWorkProject1Character::PrintInfoLog()
@@ -99,6 +100,34 @@ void ANetWorkProject1Character::PrintInfoLog()
 	DrawDebugString(GetWorld(),GetActorLocation(),printString,nullptr,FColor::White,0,true,1.0f);
 }
 
+void ANetWorkProject1Character::PrintTimeLog(float deltaSeconds)
+{
+	//GetLocalRole() == ROLE_Authority 서버에서만 변경하면된다
+	//서버에서 GetLocalRole 은 모두 ROLE_Authority
+	// 로컬에서 GetLocalRole() == ROLE_Authority 없음 
+	if(GetLocalRole() == ROLE_Authority)
+	{
+	 elapsedTime+=deltaSeconds;
+	}
+
+	//조건이없을때 클라이언트도 lapsedTime 을 보내지만 서버의 elapsedTime으로 덮어쓰기 되는 것 
+	// 
+	//UE_LOG(LogTemp,Warning,TEXT("Elapsed Time :%.2f"),elapsedTime);
+	DrawDebugString(GetWorld(),GetActorLocation(),FString::Printf(TEXT("Elapsed Time :%.2f \n Jump Count :%d"),
+	elapsedTime,jumpCounts),
+	nullptr,
+	FColor::Blue,0,true,1.0f);
+}
+
+void ANetWorkProject1Character::JumpStart()
+{
+	Jump();
+	/*if(HasAuthority())
+	{
+	}*/
+	jumpCounts++;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -108,7 +137,7 @@ void ANetWorkProject1Character::SetupPlayerInputComponent(UInputComponent* Playe
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ANetWorkProject1Character::JumpStart);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
@@ -157,4 +186,21 @@ void ANetWorkProject1Character::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+//오버라이드를 안할꺼 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
+//이미 오버라이드 된
+void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);	//부모에서 오버라이드 된 것들을 실행
+
+	// DOREPLIFETIME(ANetWorkProject1Character,elapsedTime);
+	// 서버만의 동기화 tick 에 변화값을 계속 주는 것
+	// c :클래스 v : 변수 =>UPROPERTY(Replicated) 가 되있어야 서버에서 인식 
+	DOREPLIFETIME(ANetWorkProject1Character,jumpCounts);
+	//DOREPLIFETIME_
+	DOREPLIFETIME_CONDITION(ANetWorkProject1Character,elapsedTime,COND_AutonomousOnly);
+	//조건 추가 COND_AutonomousOnly : 복제된걸 받는것에 대한 조건
+	//서버에 자기자신은 Auto 니까 모두 전송함 ??
+	DOREPLIFETIME(ANetWorkProject1Character,owningWeapon);
 }

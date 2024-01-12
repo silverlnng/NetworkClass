@@ -69,10 +69,24 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE AActor* GetOwningWeapon() {return owningWeapon;}
+	FORCEINLINE AActor* SetOwningWeapon(AActor* weapon) {return owningWeapon = weapon;}
+	
 private:
 	enum ENetRole localRole;
 	enum ENetRole remoteRole;
+	
+	UPROPERTY(Replicated)
+	AActor* owningWeapon;
+	
+	UPROPERTY(Replicated) // UPROPERTY(Replicated) : 이 변수의 값은 서버에 등록이 가능한 값
+	float elapsedTime = 0; //경과시간 
 
+	UPROPERTY(Replicated)
+	int32 jumpCounts=0;
+	
 	void PrintInfoLog();
+	void PrintTimeLog(float deltaSeconds);
+	void JumpStart();
 };
 

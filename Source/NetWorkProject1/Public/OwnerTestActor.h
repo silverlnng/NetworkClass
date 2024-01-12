@@ -28,8 +28,16 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="MySettings")
 	class UStaticMeshComponent* meshComp;
+
+	UPROPERTY(EditAnywhere, Category="MySettings")
+	float maxDistance = 600;
+	
+	/*UPROPERTY(EditAnywhere, Category="MySettings")
+	TArray<float> lengthArray;*/
+	
 private:
 	enum ENetRole localRole;
 	enum ENetRole remoteRole;
 	void PrintInfoLog();
+	AActor* GetNearestDistance();
 };
