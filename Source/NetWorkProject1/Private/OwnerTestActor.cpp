@@ -40,8 +40,8 @@ void AOwnerTestActor::Tick(float DeltaTime)
 	PrintInfoLog();
 	
 	AActor* owningActor = GetNearestDistance();
-	UE_LOG(LogTemp,Warning,TEXT("Nearest is %s"),owningActor!=nullptr ? *owningActor->GetActorNameOrLabel():*FString
-	("No Owner"));
+	/*UE_LOG(LogTemp,Warning,TEXT("Nearest is %s"),owningActor!=nullptr ? *owningActor->GetActorNameOrLabel():*FString
+	("No Owner"));*/
 	DrawDebugSphere(GetWorld(),GetActorLocation(),maxDistance,30,FColor::Green,false,0,0,1.0f);
 }
 

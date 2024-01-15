@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "net/UnrealNetwork.h"	
 //네트워크관련 헤더
+#include "PistolActor.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -121,12 +122,41 @@ void ANetWorkProject1Character::PrintTimeLog(float deltaSeconds)
 
 void ANetWorkProject1Character::JumpStart()
 {
-	Jump();
-	/*if(HasAuthority())
+	/*Jump();
+	if(HasAuthority()) // 서버에서만 실행
 	{
-	}*/
-	jumpCounts++;
+	ServerJump_Implementation()
+	}*/ 
+	ServerJump(); //서버가 아닌곳에서도 요청해서 서버에서 실행 
 }
+
+
+
+//서버에 요청 시 유효한 요청인지를 검증
+bool ANetWorkProject1Character::ServerJump_Validate() //헤더에서 WithValidation 추가하면 이렇게  추가 정의 해야함
+{
+	return  jumpCounts <5;
+	//false되는 순간 세션 강제 종료
+	// return true 으로 제작한 다음 조건이 완성되면 넣기  
+}
+
+void ANetWorkProject1Character::ServerJump_Implementation()
+{
+	jumpCounts++;
+	MulticastJump();
+	UE_LOG(LogTemp,Warning,TEXT("ServerJump_Called"));
+	//NetMulticast,client 의 경우  : ServerJump_Implementation 안쪽에서 실행시켜야 제대로 작동 
+}
+
+//모든 클라이언트에서 동시에 실행할 내용
+void ANetWorkProject1Character::MulticastJump_Implementation() //이미 구현된함수에 추가 
+{
+	UE_LOG(LogTemp,Warning,TEXT("MulticastJump__Called"));
+	//모든 클라이언트에게 점프라는 행동을 실행
+	Jump();
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -145,6 +175,7 @@ void ANetWorkProject1Character::SetupPlayerInputComponent(UInputComponent* Playe
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ANetWorkProject1Character::Look);
+		EnhancedInputComponent->BindAction(IA_ReleaseWeapon, ETriggerEvent::Started, this, &ANetWorkProject1Character::ReleaseWeapon);
 	}
 	else
 	{
@@ -188,8 +219,27 @@ void ANetWorkProject1Character::Look(const FInputActionValue& Value)
 	}
 }
 
-//오버라이드를 안할꺼 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
-//이미 오버라이드 된
+void ANetWorkProject1Character::ReleaseWeapon(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp,Warning,TEXT("%s(%d) : release wepon"),*FString(__FUNCTION__),__LINE__);
+	if(Value.Get<bool>())
+	{
+		if(owningWeapon!=nullptr)
+		{
+			//놓는 걸 pistol 에서 구현하기
+			APistolActor* pistol  = Cast<APistolActor>(owningWeapon);
+			if(pistol!=nullptr)
+			{
+				pistol->ReleaseWeapon(this);
+				pistol->SetOwner(nullptr);
+			}
+		}
+	}
+}
+
+
+//이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
+//
 void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);	//부모에서 오버라이드 된 것들을 실행

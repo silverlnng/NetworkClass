@@ -44,6 +44,9 @@ class ANetWorkProject1Character : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* IA_ReleaseWeapon;
+
 public:
 	ANetWorkProject1Character();
 	
@@ -88,5 +91,15 @@ private:
 	void PrintInfoLog();
 	void PrintTimeLog(float deltaSeconds);
 	void JumpStart();
+	
+	void ReleaseWeapon(const FInputActionValue& Value);
+
+	//RPC 함수 
+	UFUNCTION(Server, Unreliable,WithValidation) //자동구현으로 서버에서 실행해라 가 만들어짐 . cpp에서는 _Implementation 으로 구현부 정의 
+	void ServerJump();
+	
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastJump();
+
 };
 

@@ -27,8 +27,19 @@ public:
 	class UBoxComponent* boxComp;
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	class UStaticMeshComponent* meshComp;
+	void ReleaseWeapon(class ANetWorkProject1Character* player);
+	
 private:
 	UFUNCTION()
 	void OnOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	void GrabPistol(class ANetWorkProject1Character* player);
+
+	UFUNCTION(Server,Unreliable)
+	void ServerGrabPistol(class ANetWorkProject1Character* player);
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastGrabPistol(class ANetWorkProject1Character* player);
+
+	
 	
 };
