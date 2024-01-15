@@ -13,6 +13,7 @@
 #include "net/UnrealNetwork.h"	
 //네트워크관련 헤더
 #include "PistolActor.h"
+#include "BattleWidget.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -77,13 +78,31 @@ void ANetWorkProject1Character::BeginPlay()
 	}
 	localRole = GetLocalRole();
 	remoteRole = GetRemoteRole();
+
+	//GetController()!=nullptr&&GetController()->IsLocalController() 으로 검사 
+	if(battlewidget!=nullptr && GetController()!=nullptr&&GetController()->IsLocalController())
+	{
+		battleUI = CreateWidget<UBattleWidget>(GetWorld(),battlewidget);
+		if(battleUI!=nullptr)
+		{
+			battleUI->AddToViewport();	//UI 는 자신의 UI 만 띄우기 
+		}
+	}
 }
 
 void ANetWorkProject1Character::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	//PrintInfoLog();
-	PrintTimeLog(DeltaSeconds);
+	//PrintTimeLog(DeltaSeconds);
+	
+}
+
+void ANetWorkProject1Character::setWeaponInfo(int32 ammo, float damage, float delay)
+{
+	m_Ammo=ammo;
+	m_damagePower=damage;
+	m_attackDelay=delay;
 }
 
 void ANetWorkProject1Character::PrintInfoLog()
@@ -176,6 +195,7 @@ void ANetWorkProject1Character::SetupPlayerInputComponent(UInputComponent* Playe
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ANetWorkProject1Character::Look);
 		EnhancedInputComponent->BindAction(IA_ReleaseWeapon, ETriggerEvent::Started, this, &ANetWorkProject1Character::ReleaseWeapon);
+		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetWorkProject1Character::Fire);
 	}
 	else
 	{
@@ -224,15 +244,10 @@ void ANetWorkProject1Character::ReleaseWeapon(const FInputActionValue& Value)
 	UE_LOG(LogTemp,Warning,TEXT("%s(%d) : release wepon"),*FString(__FUNCTION__),__LINE__);
 	if(Value.Get<bool>())
 	{
-		if(owningWeapon!=nullptr)
+		if (owningWeapon != nullptr)
 		{
-			//놓는 걸 pistol 에서 구현하기
-			APistolActor* pistol  = Cast<APistolActor>(owningWeapon);
-			if(pistol!=nullptr)
-			{
-				pistol->ReleaseWeapon(this);
-				pistol->SetOwner(nullptr);
-			}
+			owningWeapon->ReleaseWeapon(this);
+			//owningWeapon->SetOwner(nullptr);
 		}
 	}
 }
@@ -253,4 +268,31 @@ void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	//조건 추가 COND_AutonomousOnly : 복제된걸 받는것에 대한 조건
 	//서버에 자기자신은 Auto 니까 모두 전송함 ??
 	DOREPLIFETIME(ANetWorkProject1Character,owningWeapon);
+	DOREPLIFETIME(ANetWorkProject1Character,m_Ammo);
+	DOREPLIFETIME(ANetWorkProject1Character,m_damagePower);
+	DOREPLIFETIME(ANetWorkProject1Character,m_attackDelay);
+}
+
+
+void ANetWorkProject1Character::Fire()
+{
+	if (owningWeapon != nullptr)
+	{
+		ServerFire();
+		//총알의 갯수는 relicated  변수 = 서버에서 줄여야 함
+	}
+}
+
+void ANetWorkProject1Character::MulticastFire_Implementation()
+{
+	//남아있는 총알 검사 하기 
+	bool bHasAmmo = m_Ammo>0;
+	//bHasAmmo = true 이면 1 , false 이면 0 을  
+	PlayAnimMontage(fireAnimMontage[(int32)bHasAmmo]);
+}
+
+void ANetWorkProject1Character::ServerFire_Implementation()
+{
+	m_Ammo=FMath::Max(0,m_Ammo-1);
+	MulticastFire();
 }

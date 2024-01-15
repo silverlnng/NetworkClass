@@ -47,6 +47,9 @@ class ANetWorkProject1Character : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* IA_ReleaseWeapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* IA_Fire;
+	
 public:
 	ANetWorkProject1Character();
 	
@@ -72,21 +75,42 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	FORCEINLINE AActor* GetOwningWeapon() {return owningWeapon;}
-	FORCEINLINE AActor* SetOwningWeapon(AActor* weapon) {return owningWeapon = weapon;}
 	
-private:
+	FORCEINLINE class APistolActor* GetOwningWeapon() {return owningWeapon;}
+	
+	FORCEINLINE APistolActor* SetOwningWeapon(class APistolActor* weapon) {return owningWeapon = weapon;}
+	
+	FORCEINLINE int32 GetAmmo(){return m_Ammo;}
+
+	void setWeaponInfo(int32 ammo,float damage,float delay);
+	
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	TSubclassOf<class UBattleWidget> battlewidget;	//파일 정보를 가져오기, 파일 할당용으로
+
+
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	TArray<UAnimMontage*> fireAnimMontage;
+	
+	private:
 	enum ENetRole localRole;
 	enum ENetRole remoteRole;
-	
+	class UBattleWidget* battleUI;	//TSubclassOf<class UBattleWidget>으로 가져온걸 포인터로 담기 
+	//가져온 파일정보를 월드의 인스턴스 가르키기 위해서 포인터 사용 
 	UPROPERTY(Replicated)
-	AActor* owningWeapon;
+	class APistolActor* owningWeapon;
 	
 	UPROPERTY(Replicated) // UPROPERTY(Replicated) : 이 변수의 값은 서버에 등록이 가능한 값
 	float elapsedTime = 0; //경과시간 
 
 	UPROPERTY(Replicated)
 	int32 jumpCounts=0;
+
+	UPROPERTY(Replicated)
+	int32 m_Ammo = 0;
+	UPROPERTY(Replicated)
+	int32 m_damagePower = 0;
+	UPROPERTY(Replicated)
+	int32 m_attackDelay = 0;
 	
 	void PrintInfoLog();
 	void PrintTimeLog(float deltaSeconds);
@@ -94,6 +118,8 @@ private:
 	
 	void ReleaseWeapon(const FInputActionValue& Value);
 
+	void Fire();
+	
 	//RPC 함수 
 	UFUNCTION(Server, Unreliable,WithValidation) //자동구현으로 서버에서 실행해라 가 만들어짐 . cpp에서는 _Implementation 으로 구현부 정의 
 	void ServerJump();
@@ -101,5 +127,10 @@ private:
 	UFUNCTION(NetMulticast,Unreliable)
 	void MulticastJump();
 
-};
+	UFUNCTION(Server,Unreliable)
+	void ServerFire();
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastFire();
+	
+};	
 

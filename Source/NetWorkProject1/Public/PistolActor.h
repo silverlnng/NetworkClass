@@ -28,18 +28,26 @@ public:
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	class UStaticMeshComponent* meshComp;
 	void ReleaseWeapon(class ANetWorkProject1Character* player);
+
+	int32 ammo = 10;
+	float damagePower = 2.f;
+	float attackDelay = 1.f;
 	
 private:
 	UFUNCTION()
 	void OnOverlap( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	void GrabPistol(class ANetWorkProject1Character* player);
-
+	void SetCollisionResponse();
+	
 	UFUNCTION(Server,Unreliable)
 	void ServerGrabPistol(class ANetWorkProject1Character* player);
 	UFUNCTION(NetMulticast,Unreliable)
 	void MulticastGrabPistol(class ANetWorkProject1Character* player);
 
-	
+	UFUNCTION(Server,Unreliable)
+	void ServerReleasePistol(class ANetWorkProject1Character* player);
+	UFUNCTION(NetMulticast,Unreliable)
+	void MulticastReleasePistol(class ANetWorkProject1Character* player);
 	
 };

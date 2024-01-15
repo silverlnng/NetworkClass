@@ -2,6 +2,9 @@
 
 
 #include "PistolActor.h"
+
+#include <ThirdParty/ShaderConductor/ShaderConductor/External/SPIRV-Headers/include/spirv/unified1/spirv.h>
+
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -79,27 +82,12 @@ void APistolActor::GrabPistol(class ANetWorkProject1Character* player)
 	}*/
 		
 }
-
-void APistolActor::ReleaseWeapon(class ANetWorkProject1Character* player)
-{
-	if(player==nullptr) {return;}
-	// 분리하기 
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	
-	// 다시 물리 , 충돌 작용할수있도록 되돌리기
-	boxComp->SetSimulatePhysics(true);
-	boxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	
-	// 놓으니까 플레이어의 owningWeapon 변수를 null 으로
-	player->SetOwningWeapon(nullptr);
-
-	// 나 자신(pistol)의 owner도 null으로 만들기 : 통신때문에 제일 마지막에 하기
-	//SetOwner(nullptr);
-}
-
 void APistolActor::ServerGrabPistol_Implementation(ANetWorkProject1Character* player)
 {
 	player->SetOwningWeapon(this);	//서버에서만
+
+	player->setWeaponInfo(ammo,damagePower,attackDelay);
+	
 	MulticastGrabPistol(player);
 }
 
@@ -109,7 +97,57 @@ void APistolActor::MulticastGrabPistol_Implementation(ANetWorkProject1Character*
 	//AttachToComponent를 하기 위해서 SetSimulatePhysics 가 해제되어있어야함  
 	AttachToComponent(player->GetMesh(),FAttachmentTransformRules::SnapToTargetNotIncludingScale,FName("PistolSocket"));
 	boxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	boxComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+}
+
+void APistolActor::ReleaseWeapon(class ANetWorkProject1Character* player)
+{
+	if(player==nullptr) {return;}
+	// 분리하기 
+	if(HasAuthority())
+	{
+		ServerReleasePistol_Implementation(player);
+	}
+	else
+	{
+		ServerReleasePistol(player);
+	}
+}
+
+void APistolActor::MulticastReleasePistol_Implementation(ANetWorkProject1Character* player)
+{
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
+	// 다시 물리 , 충돌 작용할수있도록 되돌리기
+	boxComp->SetSimulatePhysics(true);
+	boxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//총이 플레이어에 바로 다시 부착되지않도록 플레이어(pawn) 타입에 대한 충돌응답을 ignore으로 설정
+	FTimerHandle collisionHandle;
+	GetWorldTimerManager().SetTimer(collisionHandle,this,&APistolActor::SetCollisionResponse,3.0f,false);
+	//타이머는 매개변수 전달 불가 문제 
+}
+
+void APistolActor::ServerReleasePistol_Implementation(ANetWorkProject1Character* player)
+{
+	// 놓으니까 플레이어의 owningWeapon 변수를 null 으로
+	// owningWeapon 변수가 replicated 되있어서 서버에서만 실행되도 , 이게 복사되서 전체에게 동기화 가작용함 
+	player->SetOwningWeapon(nullptr);
+
+	ammo=player->GetAmmo();
+	//순서 중요 !! 총에 대한 정보를 플레이어를 이용해서 값을 덮어쓰기
+	player->setWeaponInfo(0,0,0);
+	// 총을 놓았으니까 플레이어가 담는 정보는 초기화
+
+	
+	MulticastReleasePistol(player); //위치 중요 !!
+	
+	SetOwner(nullptr);
+	// *** 나 자신(pistol)의 owner도 null으로 만들기 : 서버에서만 하기 +통신때문에 제일 마지막에 하기 **
 }
 
 
+void APistolActor::SetCollisionResponse()
+{
+	boxComp->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
+}
 
