@@ -8,7 +8,8 @@
 void UBattleWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	player = GetOwningPlayerPawn<ANetWorkProject1Character>();	//캐스팅해서 가져오기
+	player = GetOwningPlayerPawn<ANetWorkProject1Character>();
+	//캐스팅해서 가져오기
 	text_ammo->SetText(FText::AsNumber(0));
 }
 

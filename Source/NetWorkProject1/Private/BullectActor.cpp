@@ -31,7 +31,7 @@ ABullectActor::ABullectActor()
 	meshComp->SetupAttachment(RootComponent);
 	meshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	SetLifeSpan(5.f);
+	SetLifeSpan(5.f); //총알의 수명 주기 . 설정시간지나면 알아서 사라짐 
 	
 	bReplicates = true; //헤더에 #include  "Net/UnrealNetwork.h" 추가 
 	SetReplicateMovement(true);
@@ -59,9 +59,9 @@ void ABullectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	UE_LOG(LogTemp,Warning,TEXT("hit"));
+		//생성도 HasAuthority 권한검사로 서버에서만 총알을 가지고 있는 상태  
 	if(HasAuthority())
 	{
-		//생성도 HasAuthority 권한검사로 서버에서만 총알을 가지고 있는 상태  
 		if(ANetWorkProject1Character* player =Cast<ANetWorkProject1Character>(OtherActor))
 		{
 			player->Damaged(damage);

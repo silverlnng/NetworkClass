@@ -127,6 +127,10 @@ void ANetWorkProject1Character::setWeaponInfo(int32 ammo, float damage, float de
 void ANetWorkProject1Character::Damaged(int32 dmg)
 {
 	ServerDamaged(dmg);
+	//여기서는 Damaged() 가 서버에서만 발생해서 ServerDamaged_Implementation 으로도 가능하지만
+	//확장성을 위해서(경우에 따라 로컬에서도 Damaged() 발생할 가능성이 있을수도 있음 ) ServerDamaged ->ServerDamaged_Implementation 과정을 거치기
+	// ServerDamaged 는 서버 , 로컬 모두 실행가능
+	//ServerDamaged_Implementation는 서버에서만 실행가능함 
 }
 
 void ANetWorkProject1Character::ServerDamaged_Implementation(int32 dmg)
@@ -145,9 +149,9 @@ void ANetWorkProject1Character::ClientDamaged_Implementation()
 	
 	//카메라 쉐이크 효과 를 주기
 	APlayerController* pc = GetController<APlayerController>();
-	if(pc!=nullptr)
+	if(pc!=nullptr && hitShake!= nullptr)
 	{
-		//pc->ClientStartCameraShake()
+		pc->ClientStartCameraShake(hitShake);
 	}
 }
 
@@ -308,6 +312,35 @@ void ANetWorkProject1Character::ReleaseWeapon(const FInputActionValue& Value)
 }
 
 
+
+
+void ANetWorkProject1Character::Fire()
+{
+	if (owningWeapon != nullptr)
+	{
+		ServerFire();
+		
+	}
+}
+
+
+void ANetWorkProject1Character::ServerFire_Implementation()
+{
+	if (m_Ammo > 0)
+	{
+		owningWeapon->Fire(this); //생성은 서버쪽에서 *만* 하도록 설정  
+		m_Ammo = FMath::Max(0, m_Ammo - 1); //총알의 갯수는 relicated  변수 = 서버에서 줄여야 함
+	}
+	MulticastFire();
+}
+
+void ANetWorkProject1Character::MulticastFire_Implementation()
+{
+	bool bHasAmmo = m_Ammo > 0;
+	PlayAnimMontage(fireAnimMontage[(int32)bHasAmmo]);
+}	
+
+
 //이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
 //
 void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -328,31 +361,3 @@ void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(ANetWorkProject1Character, m_attackDelay);
 	DOREPLIFETIME(ANetWorkProject1Character, currentHealth);
 }
-
-
-void ANetWorkProject1Character::Fire()
-{
-	if (owningWeapon != nullptr)
-	{
-		ServerFire();
-		//총알의 갯수는 relicated  변수 = 서버에서 줄여야 함
-	}
-}
-
-
-void ANetWorkProject1Character::ServerFire_Implementation()
-{
-	if (m_Ammo > 0)
-	{
-		owningWeapon->Fire(this); //생성은 서버쪽에서 *만* 하도록 설정  
-		m_Ammo = FMath::Max(0, m_Ammo - 1);
-	}
-	MulticastFire();
-}
-
-void ANetWorkProject1Character::MulticastFire_Implementation()
-{
-	bool bHasAmmo = m_Ammo > 0;
-	PlayAnimMontage(fireAnimMontage[(int32)bHasAmmo]);
-}	
-	//남아있?

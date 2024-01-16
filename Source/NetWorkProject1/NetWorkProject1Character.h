@@ -102,6 +102,8 @@ public:
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	int32 maxHealth = 10;
 
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	TSubclassOf<class UCameraShakeBase> hitShake;
 	
 private:
 	enum ENetRole localRole;
