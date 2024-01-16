@@ -25,13 +25,20 @@ public:
 
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	class UBoxComponent* boxComp;
+	
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	class UStaticMeshComponent* meshComp;
-	void ReleaseWeapon(class ANetWorkProject1Character* player);
+
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	TSubclassOf<class ABullectActor> bullect_bp;
+	
 
 	int32 ammo = 10;
 	float damagePower = 2.f;
 	float attackDelay = 1.f;
+	
+	void ReleaseWeapon(class ANetWorkProject1Character* player);
+	void Fire(class ANetWorkProject1Character* player);
 	
 private:
 	UFUNCTION()

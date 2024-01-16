@@ -5,11 +5,12 @@
 
 #include <ThirdParty/ShaderConductor/ShaderConductor/External/SPIRV-Headers/include/spirv/unified1/spirv.h>
 
+#include "BullectActor.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "NetWorkProject1/NetWorkProject1Character.h"
-
+#include "BullectActor.h"
 // Sets default values
 APistolActor::APistolActor()
 {
@@ -112,6 +113,24 @@ void APistolActor::ReleaseWeapon(class ANetWorkProject1Character* player)
 	{
 		ServerReleasePistol(player);
 	}
+}
+
+void APistolActor::Fire(ANetWorkProject1Character* player)
+{
+	if (bullect_bp!=nullptr && GetOwner()->HasAuthority())
+	{
+		FActorSpawnParameters params;
+		params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ABullectActor* bullect = GetWorld()->SpawnActor<ABullectActor>(bullect_bp,meshComp->GetSocketLocation(FName
+		("FirePosition")),
+		meshComp->GetSocketRotation(FName("FirePosition")),params);
+		if(bullect!=nullptr)
+		{
+			bullect->SetOwner(player);
+			bullect->damage = damagePower;
+		}
+	}
+	
 }
 
 void APistolActor::MulticastReleasePistol_Implementation(ANetWorkProject1Character* player)

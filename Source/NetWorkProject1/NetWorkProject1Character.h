@@ -70,6 +70,7 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaSeconds) override;
+	
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -83,6 +84,13 @@ public:
 	FORCEINLINE int32 GetAmmo(){return m_Ammo;}
 
 	void setWeaponInfo(int32 ammo,float damage,float delay);
+
+	void Damaged(int32 dmg);
+
+
+	UPROPERTY(EditAnywhere,Category="MyComponents")
+	class UWidgetComponent* playerInfoWidgetComp;
+	
 	
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	TSubclassOf<class UBattleWidget> battlewidget;	//파일 정보를 가져오기, 파일 할당용으로
@@ -90,11 +98,17 @@ public:
 
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	TArray<UAnimMontage*> fireAnimMontage;
+
+	UPROPERTY(EditAnywhere,Category="MySettings")
+	int32 maxHealth = 10;
+
 	
-	private:
+private:
 	enum ENetRole localRole;
 	enum ENetRole remoteRole;
-	class UBattleWidget* battleUI;	//TSubclassOf<class UBattleWidget>으로 가져온걸 포인터로 담기 
+	class UBattleWidget* battleUI;
+	class UPlayerInfoWidget* info_UI;
+	//TSubclassOf<class UBattleWidget>으로 가져온걸 포인터로 담기 
 	//가져온 파일정보를 월드의 인스턴스 가르키기 위해서 포인터 사용 
 	UPROPERTY(Replicated)
 	class APistolActor* owningWeapon;
@@ -111,6 +125,9 @@ public:
 	int32 m_damagePower = 0;
 	UPROPERTY(Replicated)
 	int32 m_attackDelay = 0;
+
+	UPROPERTY(Replicated)
+	int32 currentHealth = 0;
 	
 	void PrintInfoLog();
 	void PrintTimeLog(float deltaSeconds);
@@ -131,6 +148,10 @@ public:
 	void ServerFire();
 	UFUNCTION(NetMulticast,Unreliable)
 	void MulticastFire();
-	
+
+	UFUNCTION(Server,Unreliable)
+	void ServerDamaged(int32 dmg);
+	UFUNCTION(Client,Unreliable)
+	void ClientDamaged();
 };	
 

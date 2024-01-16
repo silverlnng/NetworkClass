@@ -21,3 +21,9 @@ void UBattleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		text_ammo->SetText(FText::AsNumber(ammoCount));
 	}
 }
+
+void UBattleWidget::PlayHitAnimation()
+{
+	PlayAnimationForward(hitAnim);
+	//정방향 , 역방향 애니메이션 실행 가능
+}
