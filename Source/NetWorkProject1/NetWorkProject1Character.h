@@ -83,6 +83,8 @@ public:
 	
 	FORCEINLINE int32 GetAmmo(){return m_Ammo;}
 
+	FORCEINLINE bool GetDeadState(){return bIsDead;}
+	
 	void setWeaponInfo(int32 ammo,float damage,float delay);
 
 	void Damaged(int32 dmg);
@@ -111,7 +113,14 @@ private:
 	class UBattleWidget* battleUI;
 	class UPlayerInfoWidget* info_UI;
 	//TSubclassOf<class UBattleWidget>으로 가져온걸 포인터로 담기 
-	//가져온 파일정보를 월드의 인스턴스 가르키기 위해서 포인터 사용 
+	//가져온 파일정보를 월드의 인스턴스 가르키기 위해서 포인터 사용
+	
+	FTimerHandle fireCoolTime;
+	bool bReloading = false;
+
+	bool bIsDead=false;
+	APlayerController* pc;
+	
 	UPROPERTY(Replicated)
 	class APistolActor* owningWeapon;
 	
@@ -135,7 +144,7 @@ private:
 	void PrintTimeLog(float deltaSeconds);
 	void JumpStart();
 	
-	void ReleaseWeapon(const FInputActionValue& Value);
+	void ReleaseWeapon();
 
 	void Fire();
 	
@@ -150,10 +159,16 @@ private:
 	void ServerFire();
 	UFUNCTION(NetMulticast,Unreliable)
 	void MulticastFire();
-
+	//
 	UFUNCTION(Server,Unreliable)
 	void ServerDamaged(int32 dmg);
 	UFUNCTION(Client,Unreliable)
 	void ClientDamaged();
+	//
+	UFUNCTION(Server,Reliable)
+	void ServerDieProcess();
+	UFUNCTION(NetMulticast,Reliable)
+	void NetMulticastDieProcess();
+	
 };	
 

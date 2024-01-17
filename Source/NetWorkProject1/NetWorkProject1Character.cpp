@@ -14,6 +14,7 @@
 #include "PistolActor.h"
 #include "BattleWidget.h"
 #include "PlayerInfoWidget.h"
+#include "Components/Button.h"
 #include "Components/ProgressBar.h"
 #include "Components/WidgetComponent.h"
 
@@ -75,11 +76,13 @@ void ANetWorkProject1Character::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
+	pc = GetController<APlayerController>();
+	
 	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if (pc)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
-			UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+			UEnhancedInputLocalPlayerSubsystem>(pc->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -115,6 +118,14 @@ void ANetWorkProject1Character::Tick(float DeltaSeconds)
 	{
 		info_UI->pb_Health->SetPercent((float)currentHealth / (float)maxHealth);
 	}
+
+	if(!bIsDead && currentHealth <= 0 ) //캐릭터의 사망처리 tick 이어서 bool 조건없음 여러번 발생할수있음 
+	{
+		bIsDead=true;
+		//죽는 애니메이션 실행 -> AnimInstance 변수값 -> 애니메이션 bp에서 변수로 조건 설정 
+			
+		ServerDieProcess();
+	}
 }
 
 void ANetWorkProject1Character::setWeaponInfo(int32 ammo, float damage, float delay)
@@ -123,6 +134,8 @@ void ANetWorkProject1Character::setWeaponInfo(int32 ammo, float damage, float de
 	m_damagePower = damage;
 	m_attackDelay = delay;
 }
+
+#pragma region DamageRPC
 
 void ANetWorkProject1Character::Damaged(int32 dmg)
 {
@@ -148,12 +161,14 @@ void ANetWorkProject1Character::ClientDamaged_Implementation()
 	battleUI->PlayHitAnimation();
 	
 	//카메라 쉐이크 효과 를 주기
-	APlayerController* pc = GetController<APlayerController>();
+	//APlayerController* pc = GetController<APlayerController>();
 	if(pc!=nullptr && hitShake!= nullptr)
 	{
 		pc->ClientStartCameraShake(hitShake);
 	}
 }
+
+#pragma endregion 
 
 void ANetWorkProject1Character::PrintInfoLog()
 {
@@ -174,7 +189,7 @@ void ANetWorkProject1Character::PrintInfoLog()
 	DrawDebugString(GetWorld(), GetActorLocation(), printString, nullptr, FColor::White, 0, true, 1.0f);
 }
 
-	void ANetWorkProject1Character::PrintTimeLog(float deltaSeconds)
+void ANetWorkProject1Character::PrintTimeLog(float deltaSeconds)
 {
 	//GetLocalRole() == ROLE_Authority 서버에서만 변경하면된다
 	//서버에서 GetLocalRole 은 모두 ROLE_Authority
@@ -192,6 +207,8 @@ void ANetWorkProject1Character::PrintInfoLog()
 	                nullptr,
 	                FColor::Blue, 0, true, 1.0f);
 }
+
+#pragma region JumpStartRPC
 
 void ANetWorkProject1Character::JumpStart()
 {
@@ -228,10 +245,12 @@ void ANetWorkProject1Character::MulticastJump_Implementation() //이미 구현된함수
 	Jump();
 }
 
-
+#pragma endregion 
 //////////////////////////////////////////////////////////////////////////
 // Input
 
+
+//SetupPlayerInputComponent 는 생성자와 beginplay 사이에서 실행 
 void ANetWorkProject1Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -298,19 +317,19 @@ void ANetWorkProject1Character::Look(const FInputActionValue& Value)
 	}
 }
 
-void ANetWorkProject1Character::ReleaseWeapon(const FInputActionValue& Value)
+void ANetWorkProject1Character::ReleaseWeapon()
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s(%d) : release wepon"), *FString(__FUNCTION__), __LINE__);
-	if (Value.Get<bool>())
+	if (owningWeapon != nullptr)
 	{
-		if (owningWeapon != nullptr)
-		{
-			owningWeapon->ReleaseWeapon(this);
-			//owningWeapon->SetOwner(nullptr);
-		}
+		owningWeapon->ReleaseWeapon(this);
+		//owningWeapon->SetOwner(nullptr);
 	}
 }
 
+
+
+#pragma region FireRPC
 
 
 
@@ -318,10 +337,16 @@ void ANetWorkProject1Character::Fire()
 {
 	if (owningWeapon != nullptr)
 	{
-		ServerFire();
+		if(!GetWorldTimerManager().IsTimerActive(fireCoolTime))
+		{
+			// 실행중 일때는 true으로 조건문 불만족 
+			//IsTimerActive 가 끝났을때  (false)  함수를 실행 
+			ServerFire();
+		}
 		
 	}
 }
+
 
 
 void ANetWorkProject1Character::ServerFire_Implementation()
@@ -338,7 +363,57 @@ void ANetWorkProject1Character::MulticastFire_Implementation()
 {
 	bool bHasAmmo = m_Ammo > 0;
 	PlayAnimMontage(fireAnimMontage[(int32)bHasAmmo]);
+	GetWorldTimerManager().SetTimer(fireCoolTime,m_attackDelay,false);
+	//서버에서 타이머를 작동시킴 
 }	
+
+#pragma endregion 
+
+void ANetWorkProject1Character::ServerDieProcess_Implementation()
+{
+	NetMulticastDieProcess();
+}
+
+
+void ANetWorkProject1Character::NetMulticastDieProcess_Implementation()
+{
+	// 입력방지 -> 바인딩은(SetupPlayerInputComponent) 최초 한번에 설정되고 , 바인딩에 연결되어있는 함수를 실행하지 못하도록 
+	GetCharacterMovement()->DisableMovement(); //움직임, 점프를 막음 
+	bUseControllerRotationYaw=false;	// 회전을 막음 
+	CameraBoom->bUsePawnControlRotation=false;
+		
+	// 총을 내려놓는다
+	ReleaseWeapon();
+	//충돌 처리 비활성화
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// 동일한 효과 :   GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	
+	
+	if (pc !=nullptr && pc->IsLocalPlayerController())
+		// 특정클라이언트 (이 함수를 실행하는 플레이어가 로컬일 경우에만 실행 =  (죽는 클라이언트만 실행시킬 것 )
+		// 특정클라이언트의 방 (화면) 에서만 실행하게 됨 
+	{
+		FTimerHandle dieEffectHandler;
+		GetWorldTimerManager().SetTimer(dieEffectHandler,FTimerDelegate::CreateLambda([&]()
+		{
+		//세션나가기 버튼을 활성화 하기
+		battleUI->ShowButtons();
+		//커서보이도록 하기
+		pc->SetShowMouseCursor(true);
+		pc->SetInputMode(FInputModeUIOnly());
+		//화면을 흑백으로 후 처리한다
+		FollowCamera->PostProcessSettings.ColorSaturation = FVector4(0,0,0,1.f);	
+		}),1.1f,false);
+
+		// APlayerController* pc 지역변수라면 타이머가 실행될때만 있고 ->1.1초 지나서 는 사라짐
+		// APlayerController* pc 를 전역변수로 만들어야 한다!
+	}
+}
+
+
 
 
 //이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
