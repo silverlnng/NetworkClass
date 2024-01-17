@@ -2,9 +2,12 @@
 
 
 #include "BattleWidget.h"
+
+#include "NetworkGameInstance.h"
 #include "Components//TextBlock.h"
 #include "Components/Button.h"
 #include "NetWorkProject1/NetWorkProject1Character.h"
+
 
 void UBattleWidget::NativeConstruct()
 {
@@ -40,5 +43,5 @@ void UBattleWidget::ShowButtons()
 
 void UBattleWidget::OnexitSession()
 {
-	
+	GetGameInstance<UNetworkGameInstance>()->ExitSession();
 }

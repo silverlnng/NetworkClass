@@ -19,6 +19,7 @@ void UNetworkGameInstance::Init()
 		sessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UNetworkGameInstance::OnCreatedSession);
 		sessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this,&UNetworkGameInstance::OnFoundSession);
 		sessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this,&UNetworkGameInstance::OnJoinedSession);
+		sessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this,&UNetworkGameInstance::OnDestroyedSesssion);
 		//oncreate , create
 		//서버에 요청하고 응답을 받는데 지연시간이 있음
 		//create하고 다만들어지면  create가 완료 되었을때 실행시킬 함수 OnCreatedSession 를 만들기
@@ -133,6 +134,13 @@ void UNetworkGameInstance::JoinSession(int32 roomNumber)
 	//
 }
 
+void UNetworkGameInstance::ExitSession()
+{
+	sessionInterface->DestroySession(mySessionName);
+	// JoinSession 자체가 나의 상태를 (데이터를 받을수있도록 ) 바꾼것 !
+	//DestroySession 상태를 해제하는것
+}
+
 void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCompleteResult::Type result)
 {
 	UE_LOG(LogTemp,Warning,TEXT("Joined Session: %s"),*SesssionName.ToString());
@@ -156,7 +164,7 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 			pc->ClientTravel(url,TRAVEL_Absolute);
 			// ClientTravel ( 맵 또는 ip 주소 대입 , travel 타입 )  
 			// 지금 url은 ip주소로 인데 맵까지 동일한 맵으로...??
-			//랜 접속으로는 가능 
+			//랜 접속으로는 가능 ! 
 		}
 		break;
 	case EOnJoinSessionCompleteResult::SessionIsFull:
@@ -178,3 +186,18 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 		break;
 	}
 }
+
+void UNetworkGameInstance::OnDestroyedSesssion(FName sessionName, bool bwasSuccessful)
+{
+	UE_LOG(LogTemp,Warning,TEXT("Destroy Session Name: %s") , bwasSuccessful ? *sessionName.ToString():*FString("failed..."));
+	
+	if(bwasSuccessful)
+	{
+		APlayerController* pc = GetWorld()->GetFirstPlayerController();
+		if(pc!=nullptr)
+		{
+			pc->ClientTravel(FString("/Game/Maps/LobbyMap"),ETravelType::TRAVEL_Absolute);
+		}
+	}
+}
+
