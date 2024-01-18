@@ -29,7 +29,7 @@ public:
 	class UButton* btn_create;
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_back;
-
+	
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UWidgetSwitcher* ws_widgetSwitcher;
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
@@ -47,6 +47,12 @@ public:
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_findSessions;
 
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UEditableText* editText_userName;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UButton* btn_Next;
+	
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	TSubclassOf<class USessionSlotWidget> slotWidget;
 
@@ -76,4 +82,8 @@ int32 maxPlayer,int32  pingSpeed,int32 sessionIdx);
 	void OnClearScrollBox();
 	UFUNCTION()
 	void FindBtnToggle(bool value);
+
+	UFUNCTION()
+	void SetUserNameAndNext();
+	
 };

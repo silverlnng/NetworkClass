@@ -139,6 +139,13 @@ private:
 
 	UPROPERTY(Replicated)
 	int32 currentHealth = 0;
+
+	// replicate를 받은건 클라이언트 쪽
+	// 리슨서버여서 호스트 겸 서버일때 는 불편한점이 있음
+	// 호스트는 직접 변경한것 
+	// (복제한 값을  받는데 그 값이  변할때 마다 ) 함수를 실행하도록 하기
+	UPROPERTY(ReplicatedUsing=OnRep_JumpEffect)
+	int32 repJumpCounts=0;
 	
 	void PrintInfoLog();
 	void PrintTimeLog(float deltaSeconds);
@@ -147,6 +154,9 @@ private:
 	void ReleaseWeapon();
 
 	void Fire();
+
+	UFUNCTION()
+	void OnRep_JumpEffect(); //OnRep_ 접두어 붙이기 
 	
 	//RPC 함수 
 	UFUNCTION(Server, Unreliable,WithValidation) //자동구현으로 서버에서 실행해라 가 만들어짐 . cpp에서는 _Implementation 으로 구현부 정의 

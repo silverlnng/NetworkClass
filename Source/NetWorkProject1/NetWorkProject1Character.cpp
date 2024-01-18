@@ -110,7 +110,7 @@ void ANetWorkProject1Character::BeginPlay()
 void ANetWorkProject1Character::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	//PrintInfoLog();
+	PrintInfoLog();
 	//PrintTimeLog(DeltaSeconds);
 
 
@@ -172,6 +172,8 @@ void ANetWorkProject1Character::ClientDamaged_Implementation()
 
 void ANetWorkProject1Character::PrintInfoLog()
 {
+	/*
+	//네트워그 role 확인용 로그
 	FString localRoleString = *UEnum::GetValueAsString<ENetRole>(localRole);
 	FString remoteRoleString = *UEnum::GetValueAsString<ENetRole>(remoteRole);
 	FString ownerString = GetOwner() == nullptr ? *FString("No owner") : *GetOwner()->GetActorNameOrLabel();
@@ -187,6 +189,24 @@ void ANetWorkProject1Character::PrintInfoLog()
 	// 여기서 * 는 포인터가 아님 : 연산자 오버라이드 * 표시 => tchar형태로 반환된것
 	// UEnum::GetValueAsString<ENetRole> : 값에 해당하는 enum값을 문자열로 
 	DrawDebugString(GetWorld(), GetActorLocation(), printString, nullptr, FColor::White, 0, true, 1.0f);
+	*/
+
+	//게임프레임 워크 확인용 로그
+	FString gameModeString = GetWorld()->GetAuthGameMode()!=nullptr ? *FString("validGameMode"):*FString("invalidGameMode"); 
+	//GetAuthGameMode : 현재 월드에 해당하는 게임모드 
+	//월드마다 게임모드 세팅하니까(override ) , 없는경우 디폴트 값 GameMode 사용
+
+	FString gameStateString = GetWorld()->GetGameState()!=nullptr ? *FString("validGameState"):*FString("invalidGameState");
+
+	FString playerStateString = GetPlayerState()!=nullptr ? *FString("validPlayerState"):*FString
+	("invalidPlayerState");
+
+	AHUD* hud = GetController<APlayerController>()!=nullptr ? GetController<APlayerController>()->GetHUD():nullptr;
+	//AHUD* hud =GetController<APlayerController>() != nullptr ? GetController<APlayerController>()->GetHUD() : nullptr;
+	FString HUDString = hud !=nullptr ? *FString("validHUD"):*FString("invalidHUD");
+
+	FString printString = FString::Printf(TEXT("gameMode : %s \n gameState : %s \n playerState : %s \n HUDS: %s \n"), *gameModeString,*gameStateString, *playerStateString, *HUDString);
+	DrawDebugString(GetWorld(),GetActorLocation(),printString,nullptr,FColor::Black,0,true,1.0f);
 }
 
 void ANetWorkProject1Character::PrintTimeLog(float deltaSeconds)
@@ -224,7 +244,8 @@ void ANetWorkProject1Character::JumpStart()
 //서버에 요청 시 유효한 요청인지를 검증
 bool ANetWorkProject1Character::ServerJump_Validate() //헤더에서 WithValidation 추가하면 이렇게  추가 정의 해야함
 {
-	return jumpCounts < 5;
+	return true;
+	//return jumpCounts < 5;
 	//false되는 순간 세션 강제 종료
 	// return true 으로 제작한 다음 조건이 완성되면 넣기  
 }
@@ -232,6 +253,7 @@ bool ANetWorkProject1Character::ServerJump_Validate() //헤더에서 WithValidation 
 void ANetWorkProject1Character::ServerJump_Implementation()
 {
 	jumpCounts++;
+	repJumpCounts++;	// 
 	MulticastJump();
 	UE_LOG(LogTemp, Warning, TEXT("ServerJump_Called"));
 	//NetMulticast,client 의 경우  : ServerJump_Implementation 안쪽에서 실행시켜야 제대로 작동 
@@ -243,6 +265,15 @@ void ANetWorkProject1Character::MulticastJump_Implementation() //이미 구현된함수
 	//UE_LOG(LogTemp,Warning,TEXT("MulticastJump__Called"));
 	//모든 클라이언트에게 점프라는 행동을 실행
 	Jump();
+}
+
+void ANetWorkProject1Character::OnRep_JumpEffect()
+{
+	UE_LOG(LogTemp,Warning,TEXT("OnRep_Jump__Called"));
+	if(battleUI!=nullptr)
+	{
+		battleUI->PlayHitAnimation();
+	}
 }
 
 #pragma endregion 
@@ -369,6 +400,8 @@ void ANetWorkProject1Character::MulticastFire_Implementation()
 
 #pragma endregion 
 
+
+#pragma region DieRPC
 void ANetWorkProject1Character::ServerDieProcess_Implementation()
 {
 	NetMulticastDieProcess();
@@ -413,7 +446,7 @@ void ANetWorkProject1Character::NetMulticastDieProcess_Implementation()
 	}
 }
 
-
+#pragma endregion 
 
 
 //이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
@@ -435,4 +468,5 @@ void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(ANetWorkProject1Character, m_damagePower);
 	DOREPLIFETIME(ANetWorkProject1Character, m_attackDelay);
 	DOREPLIFETIME(ANetWorkProject1Character, currentHealth);
+	DOREPLIFETIME(ANetWorkProject1Character, repJumpCounts);
 }

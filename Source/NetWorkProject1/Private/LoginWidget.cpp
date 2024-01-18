@@ -27,6 +27,8 @@ void ULoginWidget::NativeConstruct()
 	btn_MoveToFindPanel->OnClicked.AddDynamic(this,&ULoginWidget::OnClickedMoveToFind);
 	btn_Back2->OnClicked.AddDynamic(this,&ULoginWidget::OnClickedBackButton);
 	btn_findSessions->OnClicked.AddDynamic(this,&ULoginWidget::OnClickedFindSessionsButton);
+	btn_Next->OnClicked.AddDynamic(this,&ULoginWidget::SetUserNameAndNext);
+
 	
 	gi = GetGameInstance<UNetworkGameInstance>();//게임프레임워크는 가져오기 쉬움
 
@@ -38,10 +40,9 @@ void ULoginWidget::NativeConstruct()
 		gi->onFindButtonToggle.AddDynamic(this,&ULoginWidget::FindBtnToggle);
 	}
 	
-	//슬라이더 값이 변경될때마다 실행될 함수 연결
+	//슬라이더 값이 변경될때마다 실행될 함수 연결=> 변경안하면 디폴트값이 0이 들어갔음 !
 	sl_maxPlayers->OnValueChanged.AddDynamic(this,&ULoginWidget::OnSliderMoved);
-
-	
+	sl_maxPlayers->SetValue(2); //두명을 디폴트로 
 }
 
 void ULoginWidget::OnClickedCreateButton()
@@ -54,7 +55,7 @@ void ULoginWidget::OnClickedCreateButton()
 
 void ULoginWidget::OnClickedBackButton()
 {
-	ws_widgetSwitcher->SetActiveWidgetIndex(0);
+	ws_widgetSwitcher->SetActiveWidgetIndex(1);
 }
 
 void ULoginWidget::OnSliderMoved(float value)
@@ -64,13 +65,13 @@ void ULoginWidget::OnSliderMoved(float value)
 
 void ULoginWidget::OnClickedMoveToCreate()
 {
-	ws_widgetSwitcher->SetActiveWidgetIndex(1);
+	ws_widgetSwitcher->SetActiveWidgetIndex(2);
 }
 
 void ULoginWidget::OnClickedMoveToFind()
 {
 	// 0->2 번으로
-	ws_widgetSwitcher->SetActiveWidgetIndex(2);
+	ws_widgetSwitcher->SetActiveWidgetIndex(3);
 	if(gi!=nullptr)
 	{
 		gi->FindSession();
@@ -112,5 +113,13 @@ void ULoginWidget::OnClearScrollBox()
 void ULoginWidget::FindBtnToggle(bool value)
 {
 	btn_findSessions->SetIsEnabled(value);
+}
+
+void ULoginWidget::SetUserNameAndNext()
+{
+	gi->SetSessionName(editText_userName->GetText().ToString());
+	//게임인스턴스에 입력한이름을(editText_userName) 세션이름으로 저장
+	
+	ws_widgetSwitcher->SetActiveWidgetIndex(1);
 }
 

@@ -2,6 +2,8 @@
 
 
 #include "BullectActor.h"
+
+#include "NetPlayerState.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include  "Net/UnrealNetwork.h"
@@ -64,7 +66,12 @@ void ABullectActor::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	{
 		if(ANetWorkProject1Character* player =Cast<ANetWorkProject1Character>(OtherActor))
 		{
+			//player ->총알에 맞은플레이어  
 			player->Damaged(damage);
+
+			//총알의 주인 플레이어 (GetOwner()) 의 PlayerState 의 score 변수의 값에 10점 추가
+			ANetPlayerState* ownerPlayer= Cast<ANetWorkProject1Character>(GetOwner())->GetPlayerState<ANetPlayerState>();
+			ownerPlayer->SetScore(ownerPlayer->GetScore()+10);
 		}
 	 	
 	  Destroy();

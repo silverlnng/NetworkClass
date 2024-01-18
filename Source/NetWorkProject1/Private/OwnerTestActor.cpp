@@ -37,7 +37,7 @@ void AOwnerTestActor::BeginPlay()
 void AOwnerTestActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	PrintInfoLog();
+	//PrintInfoLog();
 	
 	AActor* owningActor = GetNearestDistance();
 	/*UE_LOG(LogTemp,Warning,TEXT("Nearest is %s"),owningActor!=nullptr ? *owningActor->GetActorNameOrLabel():*FString

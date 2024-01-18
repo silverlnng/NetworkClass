@@ -141,6 +141,11 @@ void UNetworkGameInstance::ExitSession()
 	//DestroySession 상태를 해제하는것
 }
 
+void UNetworkGameInstance::SetSessionName(FString name)
+{
+	mySessionName = FName(*name);
+}
+
 void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCompleteResult::Type result)
 {
 	UE_LOG(LogTemp,Warning,TEXT("Joined Session: %s"),*SesssionName.ToString());

@@ -29,6 +29,9 @@ public:
 	void FindSession();
 	void JoinSession(int32 roomNumber);
 	void ExitSession();
+	void SetSessionName(FString name);
+	FORCEINLINE FString GetSessionName(){return mySessionName.ToString();}
+
 	
 	//델리게이트 변수 선언
 	//블루프린트에서 사용하고 싶은경우 ,
