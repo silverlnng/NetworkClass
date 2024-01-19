@@ -13,5 +13,14 @@ UCLASS()
 class NETWORKPROJECT1_API ANetworkPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
+
+	//
+private:
+	class ANetworkGameModeBase* gm;
 	
+public:
+	void ChangeCharToSpectator();
 };

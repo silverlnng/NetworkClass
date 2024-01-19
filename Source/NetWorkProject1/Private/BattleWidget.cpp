@@ -10,6 +10,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "NetWorkProject1/NetWorkProject1Character.h"
 #include "GameFramework/PlayerState.h"
+#include "Components/HorizontalBox.h"
+
 
 void UBattleWidget::NativeConstruct()
 {
@@ -47,9 +49,11 @@ void UBattleWidget::PlayHitAnimation()
 
 void UBattleWidget::ShowButtons()
 {
-	btn_exitSession->SetVisibility(ESlateVisibility::Visible);
+	//btn_exitSession->SetVisibility(ESlateVisibility::Visible);
 	//SetVisibility 가 UWidget 에 선언 되어있음
-	
+	hb_menuButtons->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	//visible 을 하면 가장 상위에 있는 hb_menuButtons 에서 인터렉션을 막음
+	//SelfHitTestInvisible 으로 자신의 인터렉션은 막고 , 자식의 인터렉션을 활성화 하기 
 }
 
 void UBattleWidget::AddPlayerList(FString playerName,float score)

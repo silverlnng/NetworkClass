@@ -122,8 +122,7 @@ void APistolActor::Fire(ANetWorkProject1Character* player)
 		FActorSpawnParameters params;
 		params.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ABullectActor* bullect = GetWorld()->SpawnActor<ABullectActor>(bullect_bp,meshComp->GetSocketLocation(FName
-		("FirePosition")),
-		meshComp->GetSocketRotation(FName("FirePosition")),params);
+		("FirePosition")),meshComp->GetSocketRotation(FName("FirePosition")),params);
 		if(bullect!=nullptr)
 		{
 			bullect->SetOwner(player);

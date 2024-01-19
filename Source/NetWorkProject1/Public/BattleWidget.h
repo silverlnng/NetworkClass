@@ -29,6 +29,12 @@ public:
 	
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_exitSession;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UButton* btn_Retry;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UHorizontalBox* hb_menuButtons;
 	
 	UPROPERTY(VisibleAnywhere,meta=(BindWidgetAnim),Transient,Category="MySettings")	//Transient :»÷πﬂº∫ ¿«πÃ
 	class UWidgetAnimation* hitAnim;
