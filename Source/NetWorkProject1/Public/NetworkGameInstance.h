@@ -25,10 +25,10 @@ public:
 	IOnlineSessionPtr sessionInterface;
 	//세션에 관련된 모든 컨트롤을 하는 기본클래스
 	
-	void CreateSession(FString roomName,FString hostName, int32 playerCount);		// 요청한 결과를 받기 위한 함수
-	void FindSession();
-	void JoinSession(int32 roomNumber);
-	void ExitSession();
+	void CreateMySession(FString roomName,FString hostName, int32 playerCount);		// 요청한 결과를 받기 위한 함수
+	void FindMySession();
+	void JoinMySession(int32 roomNumber);
+	void ExitMySession();
 	void SetSessionName(FString name);
 	FORCEINLINE FString GetSessionName(){return mySessionName.ToString();}
 

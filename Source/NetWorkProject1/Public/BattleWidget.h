@@ -26,6 +26,9 @@ public:
 	
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UTextBlock* text_PlayerList;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UTextBlock* text_RespawnTimer;
 	
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_exitSession;
@@ -40,17 +43,25 @@ public:
 	class UWidgetAnimation* hitAnim;
 	//Transient :휘발성 의미 , 프레임 정보가 저장 안되길 바래서 설정
 
+	UPROPERTY(VisibleAnywhere,Category="MySettings")
+	float spectatorTime=5.f;
+	
 	void PlayHitAnimation();
 
 	void ShowButtons();
 
 	void AddPlayerList(FString playerName,float score);
+
+	UFUNCTION()
+	void OnRetry();
 	
 private:
 	
 	class ANetWorkProject1Character* player;
 	
 	FString playerList;
+	float currentTime =0;
+	bool bProcessTimer = false;
 	
 	UFUNCTION()
 	void OnexitSession();

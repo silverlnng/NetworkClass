@@ -49,6 +49,9 @@ class ANetWorkProject1Character : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* IA_Fire;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* IA_VoiceControl;
 	
 public:
 	ANetWorkProject1Character();
@@ -154,6 +157,9 @@ private:
 	void ReleaseWeapon();
 
 	void Fire();
+
+	void VoiceChatOn();
+	void VoiceChatOff();
 
 	UFUNCTION()
 	void OnRep_JumpEffect(); //OnRep_ 접두어 붙이기 

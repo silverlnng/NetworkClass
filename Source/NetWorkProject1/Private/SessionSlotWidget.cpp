@@ -29,7 +29,7 @@ void USessionSlotWidget::OnClickedJoinButton()
 {
 	if(gi!=nullptr)
 	{
-		gi->JoinSession(roomIndex);
+		gi->JoinMySession(roomIndex);
 	}
 	
 }

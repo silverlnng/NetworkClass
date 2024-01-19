@@ -37,7 +37,7 @@ void UNetworkGameInstance::Init()
 }
 
 
-void UNetworkGameInstance::CreateSession(FString roomName, FString hostName, int32 playerCount)
+void UNetworkGameInstance::CreateMySession(FString roomName, FString hostName, int32 playerCount)
 {
 	FOnlineSessionSettings SessionSettings;	//SessionSettings구조체에 하나씩 설정값을 세팅
 	
@@ -74,7 +74,7 @@ void UNetworkGameInstance::OnCreatedSession(FName sessionName, bool bWasSuccessf
 	//지금현재 리슨서버이기때문에  ?listen 으로 설정 
 }
 
-void UNetworkGameInstance::FindSession()
+void UNetworkGameInstance::FindMySession()
 {
 	onFindButtonToggle.Broadcast(false);
 	// 세션 검색 조건을 설정 
@@ -128,13 +128,13 @@ void UNetworkGameInstance::OnFoundSession(bool bwasSuccessful)
 	}
 }
 
-void UNetworkGameInstance::JoinSession(int32 roomNumber)
+void UNetworkGameInstance::JoinMySession(int32 roomNumber)
 {
 	sessionInterface->JoinSession(0,mySessionName,SessionSearch->SearchResults[roomNumber]);
 	//
 }
 
-void UNetworkGameInstance::ExitSession()
+void UNetworkGameInstance::ExitMySession()
 {
 	sessionInterface->DestroySession(mySessionName);
 	// JoinSession 자체가 나의 상태를 (데이터를 받을수있도록 ) 바꾼것 !

@@ -302,6 +302,10 @@ void ANetWorkProject1Character::SetupPlayerInputComponent(UInputComponent* Playe
 		EnhancedInputComponent->BindAction(IA_ReleaseWeapon, ETriggerEvent::Started, this,
 		                                   &ANetWorkProject1Character::ReleaseWeapon);
 		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ANetWorkProject1Character::Fire);
+		EnhancedInputComponent->BindAction(IA_VoiceControl, ETriggerEvent::Started, this, 
+		&ANetWorkProject1Character::VoiceChatOn);
+		EnhancedInputComponent->BindAction(IA_VoiceControl, ETriggerEvent::Completed, this, 
+		&ANetWorkProject1Character::VoiceChatOff);
 	}
 	else
 	{
@@ -380,6 +384,7 @@ void ANetWorkProject1Character::Fire()
 
 
 
+
 void ANetWorkProject1Character::ServerFire_Implementation()
 {
 	if (m_Ammo > 0)
@@ -448,6 +453,20 @@ void ANetWorkProject1Character::NetMulticastDieProcess_Implementation()
 
 #pragma endregion 
 
+#pragma region VoiceChat
+void ANetWorkProject1Character::VoiceChatOn()
+{
+	pc->StartTalking();
+}
+
+void ANetWorkProject1Character::VoiceChatOff()
+{
+	pc->StopTalking();
+	//pc->GetUniqueID();
+	//pc->ServerMutePlayer(0);
+}
+
+#pragma endregion 
 
 //이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
 //

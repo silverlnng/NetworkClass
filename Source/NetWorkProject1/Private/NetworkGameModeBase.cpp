@@ -5,7 +5,7 @@
 #include "EngineUtils.h"
 #include "GameFramework/PlayerStart.h"
 
-// 레벨이 변경 => 모두 새롭게 재입장 !! (세션에 한번입장 개념이 아님 ) 
+// 레벨이 변경 =>새롭게 게임모드 베이스 생성 => 모두 새롭게 재입장 !! (세션에 한번입장 개념이 아님 ) 
 // 함수호출 => 플레이어 입장할때 마다 
 // AController* player  을 인자로 받아서 플레이어에 접근을 해서 플레이어의 기준으로 설정도 가능하다 !
 AActor* ANetworkGameModeBase::ChoosePlayerStart_Implementation(AController* player)

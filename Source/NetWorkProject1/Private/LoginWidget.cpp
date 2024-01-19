@@ -49,7 +49,7 @@ void ULoginWidget::OnClickedCreateButton()
 {
 	if(gi!=nullptr)
 	{
-		gi->CreateSession(eText_roomName->GetText().ToString(), eText_hostName->GetText().ToString(), (int32)sl_maxPlayers->GetValue());
+		gi->CreateMySession(eText_roomName->GetText().ToString(), eText_hostName->GetText().ToString(), (int32)sl_maxPlayers->GetValue());
 	}
 }
 
@@ -74,7 +74,7 @@ void ULoginWidget::OnClickedMoveToFind()
 	ws_widgetSwitcher->SetActiveWidgetIndex(3);
 	if(gi!=nullptr)
 	{
-		gi->FindSession();
+		gi->FindMySession();
 	}
 }
 
@@ -82,7 +82,7 @@ void ULoginWidget::OnClickedFindSessionsButton()
 {
 	if(gi!=nullptr)
 	{
-		gi->FindSession();
+		gi->FindMySession();
 	}
 
 	//중복클릭 (stuck 에 걸릴수있음 ) 방지를 위해 버튼을 잠시 비활성화  

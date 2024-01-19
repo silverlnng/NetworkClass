@@ -5,6 +5,7 @@
 
 #include "NetGameStateBase.h"
 #include "NetworkGameInstance.h"
+#include "NetworkPlayerController.h"
 #include "Components//TextBlock.h"
 #include "Components/Button.h"
 #include "GameFramework/GameStateBase.h"
@@ -20,7 +21,11 @@ void UBattleWidget::NativeConstruct()
 	//캐스팅해서 가져오기
 	text_ammo->SetText(FText::AsNumber(0));
 	btn_exitSession->OnClicked.AddDynamic(this,&UBattleWidget::OnexitSession);
-	text_PlayerList->SetText(FText::FromString(FString(TEXT("")))); //공백으로 초기화 
+	btn_Retry->OnClicked.AddDynamic(this,&UBattleWidget::OnRetry);
+	
+	text_PlayerList->SetText(FText::FromString(FString(TEXT("")))); //공백으로 초기화
+
+	currentTime=spectatorTime;
 }
 
 void UBattleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -38,6 +43,20 @@ void UBattleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		{
 			AddPlayerList(ps->GetPlayerName(),ps->GetScore());
 		}
+	}
+	if(bProcessTimer)
+	{
+		if(currentTime>0)
+		{
+			currentTime-=InDeltaTime;
+		}
+		else
+		{
+			bProcessTimer=false;
+			currentTime=spectatorTime;
+			text_RespawnTimer->SetVisibility(ESlateVisibility::Hidden);
+		}
+		text_RespawnTimer->SetText(FText::AsNumber((int32)currentTime));
 	}
 }
 
@@ -66,5 +85,23 @@ void UBattleWidget::AddPlayerList(FString playerName,float score)
 
 void UBattleWidget::OnexitSession()
 {
-	GetGameInstance<UNetworkGameInstance>()->ExitSession();
+	GetGameInstance<UNetworkGameInstance>()->ExitMySession();
+}
+
+
+void UBattleWidget::OnRetry()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s(%d) : %s"), *FString(__FUNCTION__), __LINE__,*FString("OnRetryClicked"));
+	
+	//버튼을 누르는 사람은 클라이언트 될수도 있어서 ChangeCharToSpectator 을 rpc함수로 만들기  
+	ANetworkPlayerController* pc =player->GetController<ANetworkPlayerController>();
+	pc->ChangeCharToSpectator();
+	//입력도
+	pc->SetShowMouseCursor(false);
+	pc->SetInputMode(FInputModeGameOnly());
+	hb_menuButtons->SetVisibility(ESlateVisibility::Hidden);
+
+	text_RespawnTimer->SetVisibility(ESlateVisibility::Visible);
+	bProcessTimer=true;
+
 }

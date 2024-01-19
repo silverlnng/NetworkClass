@@ -22,5 +22,8 @@ private:
 	class ANetworkGameModeBase* gm;
 	
 public:
+	UFUNCTION(Server,Unreliable)
 	void ChangeCharToSpectator();
+	UFUNCTION(Server,Unreliable)
+	void serverRespawnPlayer();
 };
