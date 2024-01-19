@@ -97,7 +97,7 @@ void UNetworkGameInstance::OnFoundSession(bool bwasSuccessful)
 	if(bwasSuccessful)
 	{
 		int32 sessionNum = results.Num();
-		UE_LOG(LogTemp,Warning,TEXT("Find Result : %d") ,results.Num());
+		UE_LOG(LogTemp,Warning,TEXT("Session Count : %d") ,results.Num());
 
 		onNewSearchComplete.Broadcast();
 		//Broadcast 연결된 모든 함수에게 알리는것 
