@@ -9,6 +9,6 @@ public class NetWorkProject1 : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
-            "EnhancedInput" , "UMG", "Slate", "OnlineSubsystem", "OnlineSubsystemSteam" });
+            "EnhancedInput" , "UMG", "Slate", "SlateCore","OnlineSubsystem", "OnlineSubsystemSteam" });
 	}
 }

@@ -17,5 +17,6 @@ class NETWORKPROJECT1_API UPlayerInfoWidget : public UUserWidget
 public:
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UProgressBar* pb_Health;
-	
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UTextBlock* text_name;
 };

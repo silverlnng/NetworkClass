@@ -123,6 +123,12 @@ private:
 
 	bool bIsDead=false;
 	APlayerController* pc;
+	class UNetworkGameInstance* gi;
+
+	//private인데 에디터에 표시될수있도록 만드는 uproperty 설정 값
+	UPROPERTY(EditAnywhere,meta=(AllowPrivateAccess = "true"),Category="MySettings")
+	TArray<FString> playerMeshes;
+	
 	
 	UPROPERTY(Replicated)
 	class APistolActor* owningWeapon;
@@ -149,6 +155,11 @@ private:
 	// (복제한 값을  받는데 그 값이  변할때 마다 ) 함수를 실행하도록 하기
 	UPROPERTY(ReplicatedUsing=OnRep_JumpEffect)
 	int32 repJumpCounts=0;
+
+	UPROPERTY(Replicated)
+	int32 playerMeshNum = 0;
+	UPROPERTY(Replicated)
+	FColor playerColor;
 	
 	void PrintInfoLog();
 	void PrintTimeLog(float deltaSeconds);
@@ -160,7 +171,10 @@ private:
 
 	void VoiceChatOn();
 	void VoiceChatOff();
+	
+	void ChangeMeshAndColor();
 
+	
 	UFUNCTION()
 	void OnRep_JumpEffect(); //OnRep_ 접두어 붙이기 
 	
@@ -185,6 +199,11 @@ private:
 	void ServerDieProcess();
 	UFUNCTION(NetMulticast,Reliable)
 	void NetMulticastDieProcess();
-	
+
+	UFUNCTION(Server,Reliable)
+	void ServerSetMeshAndColor(int32 meshNumer,FColor meshColor);
+
+	/*UFUNCTION(NetMulticast,Reliable)
+	void MulticastSetMeshAndColor(int32 meshNumer,FColor meshColor);*/
 };	
 

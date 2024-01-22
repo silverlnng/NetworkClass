@@ -10,6 +10,7 @@
 #include  "Components/WidgetSwitcher.h"
 #include  "SessionSlotWidget.h"
 #include "Components/ScrollBox.h"
+#include "Components/ComboBoxString.h"
 
 void ULoginWidget::NativeConstruct()
 {
@@ -28,7 +29,8 @@ void ULoginWidget::NativeConstruct()
 	btn_Back2->OnClicked.AddDynamic(this,&ULoginWidget::OnClickedBackButton);
 	btn_findSessions->OnClicked.AddDynamic(this,&ULoginWidget::OnClickedFindSessionsButton);
 	btn_Next->OnClicked.AddDynamic(this,&ULoginWidget::SetUserNameAndNext);
-
+	cbs_MeshSelect->OnSelectionChanged.AddDynamic(this,&ULoginWidget::SelectMesh);
+	cbs_ColorSelect->OnSelectionChanged.AddDynamic(this,&ULoginWidget::SelectColor);
 	
 	gi = GetGameInstance<UNetworkGameInstance>();//게임프레임워크는 가져오기 쉬움
 
@@ -119,7 +121,64 @@ void ULoginWidget::SetUserNameAndNext()
 {
 	gi->SetSessionName(editText_userName->GetText().ToString());
 	//게임인스턴스에 입력한이름을(editText_userName) 세션이름으로 저장
+
+	//바로 화면창으로 넘어가지 않고 , 컬러와 메쉬를 선택하고 넘어가도록 설정
+	if(cbs_ColorSelect->GetSelectedOption().IsEmpty()||cbs_MeshSelect->GetSelectedOption().IsEmpty())
+	{
+		UE_LOG(LogTemp,Warning,TEXT("You have to  Select  Mesh, Mesh Color :"));
+	}
+	else
+	{
+		ws_widgetSwitcher->SetActiveWidgetIndex(1);
+	}
+}
+
+void ULoginWidget::SelectMesh(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	// 유저가 선택한 값 : SelectedItem
+	// 레벨 travel 을 하기 떄문에 travel을 해도 유지가 되는 유일한 클래스 gameInstance 에 저장을 하기
+	if(gi!=nullptr)
+	{
+		//문자열 비교 contains , equals 둘다 가능
+		// == 보다 Equals 가 더 정확 ! 
+		if(SelectedItem==FString("Manny"))
+		{
+			gi->meshNum=0;
+			
+		}
+		else if( SelectedItem.Equals(FString("Quinn")))
+		{
+			gi->meshNum=1;
+		}
+		else if(SelectedItem==FString("Manequin"))
+		{
+			gi->meshNum=2;
+		}
+		UE_LOG(LogTemp,Warning,TEXT("User Slected Mesh : %s"),*SelectedItem);
+	}
+}
+
+void ULoginWidget::SelectColor(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	if(gi!=nullptr)
+	{
+		//문자열 비교 contains , equals 둘다 가능
+		// == 보다 Equals 가 더 정확 ! 
+		if(SelectedItem==FString("Red"))
+		{
+			gi->meshColor=FColor(255,0,0);
+			
+		}
+		else if( SelectedItem.Equals(FString("Green")))
+		{
+			gi->meshColor=FColor(0,255,0);
+		}
+		else if(SelectedItem==FString("Blue"))
+		{
+			gi->meshColor=FColor(0,0,255);
+		}
+		UE_LOG(LogTemp,Warning,TEXT("User Slected meshColor : %s"),*SelectedItem);
+	}
 	
-	ws_widgetSwitcher->SetActiveWidgetIndex(1);
 }
 

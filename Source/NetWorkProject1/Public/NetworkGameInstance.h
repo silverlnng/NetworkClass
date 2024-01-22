@@ -32,6 +32,13 @@ public:
 	void SetSessionName(FString name);
 	FORCEINLINE FString GetSessionName(){return mySessionName.ToString();}
 
+	int32 meshNum =0;
+	FColor meshColor;
+	// Fcolor : 들어오는 값이 8비트 (uint8) = 2의 8승 0~256 가지 ,
+	// FLinearColor : 들어오는 값이 float () = 제한이 적음
+	// Fcolor , FLinearColor둘이 서로 변환가능 
+
+	
 	
 	//델리게이트 변수 선언
 	//블루프린트에서 사용하고 싶은경우 ,

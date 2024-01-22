@@ -38,7 +38,9 @@ void UBattleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		
 		TArray<APlayerState*> players = GetWorld()->GetGameState<ANetGameStateBase>()->GetMyPlayerList();
 		//월드에서 게임스테이트 가져와서 배열에 넣고
+		
 		playerList="";
+		
 		for(APlayerState* ps :players)
 		{
 			AddPlayerList(ps->GetPlayerName(),ps->GetScore());

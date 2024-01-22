@@ -13,10 +13,13 @@
 #include "net/UnrealNetwork.h" //네트워크관련 헤더
 #include "PistolActor.h"
 #include "BattleWidget.h"
+#include "NetPlayerState.h"
 #include "PlayerInfoWidget.h"
 #include "Components/Button.h"
 #include "Components/ProgressBar.h"
 #include "Components/WidgetComponent.h"
+#include "NetworkGameInstance.h"
+#include "Components/TextBlock.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -77,6 +80,8 @@ void ANetWorkProject1Character::BeginPlay()
 	Super::BeginPlay();
 
 	pc = GetController<APlayerController>();
+
+	gi = GetGameInstance<UNetworkGameInstance>();
 	
 	//Add Input Mapping Context
 	if (pc)
@@ -90,6 +95,8 @@ void ANetWorkProject1Character::BeginPlay()
 	localRole = GetLocalRole();
 	remoteRole = GetRemoteRole();
 	info_UI =Cast<UPlayerInfoWidget>(playerInfoWidgetComp->GetWidget());
+
+	
 	//GetController()!=nullptr&&GetController()->IsLocalController() 으로 로컬플레이어  검사 
 	if (battlewidget != nullptr && GetController() != nullptr && GetController()->IsLocalController())
 	{
@@ -104,7 +111,21 @@ void ANetWorkProject1Character::BeginPlay()
 	{
 		currentHealth = maxHealth;
 	}
+
+	if(gi!=nullptr && GetController() && GetController()->IsLocalController())
+	{
+		FLinearColor selectColor =(FLinearColor)gi->meshColor;
+		UE_LOG(LogTemp,Warning,TEXT("%d,%d,%d,%d") ,selectColor.R,selectColor.G,selectColor.B,selectColor.A);
+		//ChangeMeshAndColor();
+		ServerSetMeshAndColor(gi->meshNum,gi->meshColor);
+		// 각자 자신의 gameinstance 의 값만 가져와야함 
+		// *** local 조건 안걸면 클라이언트 (1) 방에있는 서버, 클(1), 클(2) 모두 클(1)의 게임인스턴스의 값을 가져와서 서버 rpc를 실행함
+	}
 	
+	FTimerHandle ChangeHandler;
+	
+	GetWorldTimerManager().SetTimer(ChangeHandler,this,&ANetWorkProject1Character::ChangeMeshAndColor,0.5f,false);
+
 }
 
 void ANetWorkProject1Character::Tick(float DeltaSeconds)
@@ -275,6 +296,9 @@ void ANetWorkProject1Character::OnRep_JumpEffect()
 		battleUI->PlayHitAnimation();
 	}
 }
+
+
+
 
 #pragma endregion 
 //////////////////////////////////////////////////////////////////////////
@@ -466,7 +490,65 @@ void ANetWorkProject1Character::VoiceChatOff()
 	//pc->ServerMutePlayer(0);
 }
 
-#pragma endregion 
+
+
+#pragma endregion
+
+
+void ANetWorkProject1Character::ChangeMeshAndColor()
+{
+	//그냥 파일은 인스턴스화 시키는 법 , 생성자가 아닌곳에서 LoadObject 을 이용해서 create 하는 것
+	//런타임에 특정경로에 있는 에셋을 메모리에 로드하기 (= 인스턴스화 하기 )
+	USkeletalMesh* selectedMesh = LoadObject<USkeletalMesh>(NULL,*playerMeshes[playerMeshNum],NULL,LOAD_None,NULL);
+	if(selectedMesh!=nullptr)
+	{
+	  GetMesh()->SetSkeletalMesh(selectedMesh);	//현재 메쉬를 로드한 메쉬로 설정
+	}
+
+	//기존 material 을 가져오기 
+	UMaterialInterface* mat_0 = GetMesh()->GetMaterial(0);
+	UMaterialInterface* mat_1 = GetMesh()->GetMaterial(1);
+
+	//다이나믹 인스턴스 머티리얼로 변환을 하기 
+	UMaterialInstanceDynamic* mat_inst_0 = UMaterialInstanceDynamic::Create(mat_0,this);
+	UMaterialInstanceDynamic* mat_inst_1 = UMaterialInstanceDynamic::Create(mat_1,this);
+
+	//머티리얼의 벡터 변수 값을 매개변수의 컬러값으로 변경한다
+
+	//
+	mat_inst_0->SetVectorParameterValue(FName("PlayerColor"),(FLinearColor)playerColor);
+	mat_inst_1->SetVectorParameterValue(FName("PlayerColor"),(FLinearColor)playerColor);
+
+	GetMesh()->SetMaterial(0,mat_inst_0);
+	GetMesh()->SetMaterial(1,mat_inst_1);
+
+	if(info_UI!=nullptr)
+	{
+		FString myName = GetPlayerState<ANetPlayerState>()->GetPlayerName();
+	    info_UI->text_name ->SetText(FText::FromString(myName));
+
+		if(GetController()&&GetController()->IsLocalPlayerController())
+		{
+			info_UI->text_name->SetColorAndOpacity(FSlateColor(FColor::Emerald));
+		}
+	}
+}
+
+
+void ANetWorkProject1Character::ServerSetMeshAndColor_Implementation(int32 meshNumer, FColor meshColor)
+{
+	playerMeshNum=meshNumer;
+	playerColor=meshColor;
+	//MulticastSetMeshAndColor(playerMeshNum,playerColor); //나중에 들어온 클라이언트는 실행 못함 (실행시점에 없으니까 )
+}
+
+/*void ANetWorkProject1Character::MulticastSetMeshAndColor_Implementation(int32 meshNumer, FColor meshColor)
+{
+	FTimerHandle changeHandler;
+	GetWorldTimerManager().SetTimer(changeHandler,FTimerDelegate::CreateLambda([&](){ChangeMeshAndColor();
+	}),1.0f,false);
+}*/
+
 
 //이미 오버라이드 된것 = 헤더에 선언안하고 그냥 가져와서 사용만하는 것
 //
@@ -488,4 +570,6 @@ void ANetWorkProject1Character::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(ANetWorkProject1Character, m_attackDelay);
 	DOREPLIFETIME(ANetWorkProject1Character, currentHealth);
 	DOREPLIFETIME(ANetWorkProject1Character, repJumpCounts);
+	DOREPLIFETIME(ANetWorkProject1Character, playerMeshNum);
+	DOREPLIFETIME(ANetWorkProject1Character, playerColor);
 }

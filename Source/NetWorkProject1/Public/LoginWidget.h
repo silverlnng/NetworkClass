@@ -52,6 +52,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
 	class UButton* btn_Next;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UComboBoxString* cbs_MeshSelect;
+
+	UPROPERTY(VisibleAnywhere,meta=(BindWidget),Category="MySettings")
+	class UComboBoxString* cbs_ColorSelect;
 	
 	UPROPERTY(EditAnywhere,Category="MySettings")
 	TSubclassOf<class USessionSlotWidget> slotWidget;
@@ -73,6 +79,7 @@ private:
 	UFUNCTION()
 	void OnClickedFindSessionsButton();
 	
+	
 	UFUNCTION()
 	void OnSlotCreated(FString roomName,FString hostName,int32 curPlayer,
 int32 maxPlayer,int32  pingSpeed,int32 sessionIdx);
@@ -85,5 +92,9 @@ int32 maxPlayer,int32  pingSpeed,int32 sessionIdx);
 
 	UFUNCTION()
 	void SetUserNameAndNext();
-	
+
+	UFUNCTION()
+	void SelectMesh(FString SelectedItem, ESelectInfo::Type SelectionType);
+	UFUNCTION()
+	void SelectColor(FString SelectedItem, ESelectInfo::Type SelectionType);
 };
