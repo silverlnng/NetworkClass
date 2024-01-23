@@ -167,8 +167,10 @@ void UNetworkGameInstance::OnJoinedSession(FName SesssionName, EOnJoinSessionCom
 			UE_LOG(LogTemp, Warning, TEXT("url : %s"), *url);
 			
 			pc->ClientTravel(url,TRAVEL_Absolute);
+
+			// 호스트의 url :  ip , port 주소 
 			// ClientTravel ( 맵 또는 ip 주소 대입 , travel 타입 )  
-			// 지금 url은 ip주소로 인데 맵까지 동일한 맵으로...??
+			// 
 			//랜 접속으로는 가능 ! 
 		}
 		break;
