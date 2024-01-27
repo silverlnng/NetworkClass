@@ -128,4 +128,28 @@ AActor* AOwnerTestActor::GetNearestDistance()
 #pragma endregion	
 }
 
+/*
+void AOwnerTestActor::SensorUsingOvelap()
+{
+	TArray<FOverlapResult> hitResults;
+	FVector centorLoc = GetActorLocation();
+	FQuat playerRot = GetActorQuat();
+	
+	FCollisionQueryParams _traceParams;
+	_traceParams.AddIgnoredActor(this);
+	
+	//언리얼에서 오일러 형식으로 써도 내부적으로 쿼터니온 방식으로 회전
+	bool bIsHit = GetWorld()->OverlapMultiByChannel(hitResults,centorLoc,playerRot,ECC_GameTraceChannel1,
+	FCollisionShape::MakeSphere(1500),_traceParams);
+	if(bIsHit)
+	{
+		for(const FOverlapResult hitResult :hitResults )
+		{
+			UE_LOG(LogTemp,Warning,TEXT("%s"),*hitResult.GetActor()->GetActorNameOrLabel());
+			DrawDebugSphere(GetWorld(),hitResult.GetActor()->GetActorLocation(),50,20,FColor::Red,false,0,0,1.5f);
+		}
+	}
+}
+*/
+
 

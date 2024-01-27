@@ -40,4 +40,5 @@ private:
 	enum ENetRole remoteRole;
 	void PrintInfoLog();
 	AActor* GetNearestDistance();
+	//void SensorUsingOvelap();
 };

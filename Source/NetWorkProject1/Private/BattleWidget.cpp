@@ -97,6 +97,7 @@ void UBattleWidget::OnRetry()
 	
 	//버튼을 누르는 사람은 클라이언트 될수도 있어서 ChangeCharToSpectator 을 rpc함수로 만들기  
 	ANetworkPlayerController* pc =player->GetController<ANetworkPlayerController>();
+	
 	pc->ChangeCharToSpectator();
 	//입력도
 	pc->SetShowMouseCursor(false);
